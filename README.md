@@ -1,6 +1,6 @@
 # 🌸 Flowers Garden — To-Do App
 
-Aplikasi to-do list bertema padang bunga di salah satu anime kesukaanku - Sousou No Frieren, dibangun dengan Flask + SQLite + Bootstrap 5.
+Aplikasi to-do list bertema padang bunga di salah satu anime kesukaanku - Sousou no Frieren, dibangun dengan Flask + SQLite + Bootstrap 5.
 
 ## Fitur
 - ✅ Tambah, edit, hapus task
