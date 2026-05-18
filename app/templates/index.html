@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flowers Garden ✿ Your Personal To-Do List App</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Nunito:wght@300;400;600&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --sky:        #7ecae8;
+      --sky-light:  #b8e4f4;
+      --meadow:     #6aaa5a;
+      --petal-pink: #f08090;
+      --petal-yel:  #f5d040;
+      --petal-red:  #e85060;
+      --stone:      #a09880;
+      --card-bg:    rgba(240, 250, 255, 0.78);
+      --shadow:     rgba(40, 80, 100, 0.18);
+      --text-main:  #2a3a4a;
+      --text-muted: #6a8a9a;
+      --accent:     #5a9abf;
+      --accent2:    #4a8aaf;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      min-height: 100vh;
+      margin: 0;
+      overflow-x: hidden;
+    }
+
+    /* ── BACKGROUND IMAGE ── */
+    .bg-scene {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      /* Ganti nama file sesuai gambarmu, letakkan di app/static/ */
+      background-image: url('/static/bg.jpg');
+      background-size: cover;
+      background-position: center bottom;
+      background-repeat: no-repeat;
+    }
+    /* Overlay tipis agar card tetap terbaca */
+    .bg-scene::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        180deg,
+        rgba(180, 230, 255, 0.12) 0%,
+        rgba(100, 180, 220, 0.06) 50%,
+        rgba(60, 120, 60, 0.08) 100%
+      );
+    }
+
+    /* ── FLOATING PETALS ── */
+    .petal-fall {
+      position: fixed;
+      border-radius: 50% 50% 50% 0;
+      animation: falling var(--dur, 8s) linear var(--delay, 0s) infinite;
+      top: -20px;
+      z-index: 5;
+      pointer-events: none;
+    }
+    @keyframes falling {
+      0%   { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0; }
+      8%   { opacity: 1; }
+      90%  { opacity: 0.7; }
+      100% { transform: translateY(110vh) translateX(var(--drift, 80px)) rotate(400deg); opacity: 0; }
+    }
+
+    /* ── MAIN LAYOUT ── */
+    .page-wrapper {
+      position: relative;
+      z-index: 10;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 2.5rem 1rem 6rem;
+    }
+
+    /* ── HEADER ── */
+    .app-header { text-align: center; margin-bottom: 2rem; }
+    .app-title {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 600;
+      color: #fff;
+      text-shadow:
+        0 2px 12px rgba(60, 120, 180, 0.6),
+        0 0 40px rgba(120, 200, 240, 0.4),
+        0 1px 4px rgba(0,0,0,0.35);
+      letter-spacing: 0.06em;
+      margin: 0;
+    }
+    .app-subtitle {
+      font-size: 0.88rem;
+      color: rgba(255, 255, 255, 0.92);
+      margin-top: 0.35rem;
+      font-weight: 300;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.3);
+    }
+    .title-deco {
+      display: inline-block;
+      animation: float 3s ease-in-out infinite;
+      color: #ffd0e0;
+    }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-5px); }
+    }
+
+    /* ── CARD ── */
+    .todo-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.65);
+      border-radius: 24px;
+      box-shadow:
+        0 8px 40px var(--shadow),
+        0 2px 0 rgba(255,255,255,0.85) inset;
+      width: 100%;
+      max-width: 580px;
+      padding: 2rem 2rem 1.5rem;
+    }
+
+    /* ── INPUT ── */
+    .input-group-custom {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .task-input {
+      flex: 1;
+      border: 1.5px solid rgba(90, 154, 191, 0.35);
+      border-radius: 50px;
+      padding: 0.65rem 1.2rem;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.95rem;
+      background: rgba(240, 250, 255, 0.75);
+      color: var(--text-main);
+      outline: none;
+      transition: all 0.25s;
+    }
+    .task-input:focus {
+      border-color: var(--accent);
+      background: rgba(250, 252, 255, 0.95);
+      box-shadow: 0 0 0 3px rgba(90, 154, 191, 0.2);
+    }
+    .task-input::placeholder { color: #90b0c0; }
+
+    .btn-add {
+      border: none;
+      border-radius: 50px;
+      background: linear-gradient(135deg, var(--sky), var(--accent2));
+      color: #fff;
+      padding: 0.65rem 1.3rem;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: all 0.25s;
+      box-shadow: 0 3px 14px rgba(90, 154, 191, 0.4);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    }
+    .btn-add:hover { transform: translateY(-1px); box-shadow: 0 5px 20px rgba(90,154,191,0.5); }
+    .btn-add:active { transform: translateY(0); }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+      font-family: 'Cinzel', serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.7rem;
+      padding-left: 0.3rem;
+    }
+
+    /* ── DIVIDER ── */
+    .done-divider {
+      border: none;
+      border-top: 1px dashed rgba(90, 154, 191, 0.35);
+      margin: 1rem 0 0.8rem;
+    }
+
+    /* ── TASK ITEM ── */
+    .task-list { list-style: none; padding: 0; margin: 0; }
+
+    .task-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7rem;
+      padding: 0.75rem 0.8rem;
+      border-radius: 14px;
+      margin-bottom: 0.4rem;
+      background: rgba(255, 255, 255, 0.55);
+      border: 1px solid rgba(180, 220, 240, 0.6);
+      transition: all 0.3s ease;
+      animation: slideIn 0.35s ease forwards;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .task-item:hover { background: rgba(255, 255, 255, 0.78); }
+
+    .task-item.is-done {
+      background: rgba(180, 210, 225, 0.25);
+      border-color: rgba(160, 200, 220, 0.4);
+      opacity: 0.72;
+      animation: slideDown 0.45s ease forwards;
+    }
+    @keyframes slideDown {
+      from { opacity: 1; transform: translateY(-12px); }
+      to   { opacity: 0.72; transform: translateY(0); }
+    }
+
+    /* Custom checkbox */
+    .task-check {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 2px solid var(--sky);
+      background: transparent;
+      cursor: pointer;
+      flex-shrink: 0;
+      margin-top: 2px;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .task-check:checked {
+      background: linear-gradient(135deg, var(--sky), var(--accent2));
+      border-color: var(--accent2);
+    }
+    .task-check:checked::after {
+      content: '✓';
+      position: absolute;
+      color: #fff;
+      font-size: 11px;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .task-check:hover { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(90,154,191,0.2); }
+
+    /* Task body */
+    .task-body { flex: 1; min-width: 0; }
+    .task-title {
+      font-size: 0.95rem;
+      color: var(--text-main);
+      word-break: break-word;
+      line-height: 1.4;
+      transition: all 0.3s;
+    }
+    .task-item.is-done .task-title {
+      text-decoration: line-through;
+      color: #90aabb;
+    }
+    .task-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.3rem;
+    }
+    .meta-badge {
+      font-size: 0.68rem;
+      color: #7aaabb;
+      background: rgba(90, 154, 191, 0.1);
+      border-radius: 20px;
+      padding: 1px 7px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .meta-badge i { font-size: 0.65rem; }
+
+    /* Action buttons */
+    .task-actions {
+      display: flex;
+      gap: 0.25rem;
+      flex-shrink: 0;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .task-item:hover .task-actions { opacity: 1; }
+    .btn-icon {
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #90b0c0;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+    .btn-icon:hover { background: rgba(90,154,191,0.12); color: var(--accent); }
+    .btn-icon.delete:hover { background: rgba(220,80,80,0.1); color: #d05050; }
+
+    /* Edit input */
+    .edit-input {
+      width: 100%;
+      border: 1px solid var(--sky);
+      border-radius: 8px;
+      padding: 2px 8px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.95rem;
+      background: rgba(240, 250, 255, 0.9);
+      outline: none;
+      color: var(--text-main);
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 1.5rem 0 0.5rem;
+      color: #90b0c0;
+      font-size: 0.88rem;
+    }
+    .empty-state i { font-size: 2rem; display: block; margin-bottom: 0.4rem; opacity: 0.4; color: var(--sky); }
+
+    /* Stats bar */
+    .stats-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(90, 154, 191, 0.2);
+      font-size: 0.78rem;
+      color: #7aaabb;
+    }
+    .stats-bar span { font-weight: 600; color: var(--accent); }
+
+    /* Toast */
+    .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; }
+    .toast-msg {
+      background: rgba(30, 60, 90, 0.88);
+      color: #d0f0ff;
+      border-radius: 12px;
+      padding: 0.6rem 1.1rem;
+      font-size: 0.85rem;
+      font-family: 'Nunito', sans-serif;
+      margin-top: 0.4rem;
+      animation: toastIn 0.3s ease, toastOut 0.3s ease 2.2s forwards;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      border: 1px solid rgba(90,154,191,0.3);
+    }
+    @keyframes toastIn  { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes toastOut { from { opacity:1; } to { opacity:0; } }
+
+    /* Scrollbar */
+    .task-scroll::-webkit-scrollbar { width: 4px; }
+    .task-scroll::-webkit-scrollbar-track { background: transparent; }
+    .task-scroll::-webkit-scrollbar-thumb { background: rgba(90,154,191,0.3); border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════ BACKGROUND ═══════════ -->
+<div class="bg-scene"></div>
+
+<!-- ═══════════ FLOATING PETALS ═══════════ -->
+<div id="petalContainer" style="position:fixed;inset:0;pointer-events:none;z-index:5;overflow:hidden;"></div>
+
+<!-- ═══════════ MAIN CONTENT ═══════════ -->
+<div class="page-wrapper">
+  <header class="app-header">
+    <h1 class="app-title">
+      <span class="title-deco">✿</span>
+      Flowers Garden
+      <span class="title-deco" style="animation-delay:.6s">✿</span>
+    </h1>
+    <p class="app-subtitle">a quiet place for your thoughts</p>
+  </header>
+
+  <div class="todo-card">
+    <div class="input-group-custom">
+      <input
+        type="text"
+        id="newTaskInput"
+        class="task-input"
+        placeholder="Tambah task baru... (Enter)"
+        maxlength="280"
+        autocomplete="off"
+      />
+      <button class="btn-add" onclick="addTask()">
+        <i class="bi bi-plus-lg"></i> Add
+      </button>
+    </div>
+
+    <div class="section-label">✦ Sedang Berjalan</div>
+    <ul class="task-list task-scroll" id="activeList" style="max-height:320px;overflow-y:auto;"></ul>
+    <div id="activeEmpty" class="empty-state" style="display:none">
+      <i class="bi bi-flower1"></i>
+      Ladang kosong — tambahkan sesuatu ✨
+    </div>
+
+    <hr class="done-divider" id="doneDivider" style="display:none" />
+    <div class="section-label" id="doneLabelEl" style="display:none">✦ Selesai</div>
+    <ul class="task-list task-scroll" id="doneList" style="max-height:240px;overflow-y:auto;"></ul>
+
+    <div class="stats-bar">
+      <div>Total: <span id="statTotal">0</span> task</div>
+      <div>Selesai: <span id="statDone">0</span></div>
+      <div>Aktif: <span id="statActive">0</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+/* ═══════════ FLOATING PETALS ═══════════ */
+(function spawnPetals() {
+  const c = document.getElementById('petalContainer');
+  // Warna petals: kuning, pink, merah, putih, biru langit — diambil dari palet gambar
+  const colors = [
+    'rgba(245, 208, 64, 0.85)',   // kuning
+    'rgba(240, 128, 144, 0.80)',  // pink
+    'rgba(232, 80, 96, 0.75)',    // merah
+    'rgba(255, 255, 255, 0.82)',  // putih
+    'rgba(190, 225, 248, 0.78)',  // biru langit
+    'rgba(220, 240, 255, 0.80)',  // biru muda
+  ];
+  const shapes = [
+    '50% 50% 50% 0',
+    '50%',
+    '60% 40% 60% 40%',
+    '40% 60% 40% 60%',
+  ];
+  for (let i = 0; i < 24; i++) {
+    const el     = document.createElement('div');
+    el.className = 'petal-fall';
+    const size   = 7 + Math.random() * 9;
+    const color  = colors[Math.floor(Math.random() * colors.length)];
+    const shape  = shapes[Math.floor(Math.random() * shapes.length)];
+    el.style.cssText = `
+      left: ${Math.random() * 100}%;
+      --dur: ${7 + Math.random() * 11}s;
+      --delay: -${Math.random() * 15}s;
+      --drift: ${(Math.random() - 0.5) * 200}px;
+      width: ${size}px;
+      height: ${size * (1 + Math.random() * 0.5)}px;
+      background: ${color};
+      border-radius: ${shape};
+      transform: rotate(${Math.random() * 360}deg);
+    `;
+    c.appendChild(el);
+  }
+})();
+
+/* ═══════════ TASK APP ═══════════ */
+let tasks = [];
+
+async function fetchTasks() {
+  const res = await fetch('/tasks');
+  tasks     = await res.json();
+  renderAll();
+}
+
+function renderAll() {
+  const active = tasks.filter(t => !t.is_done);
+  const done   = tasks.filter(t => t.is_done);
+
+  renderList('activeList', active);
+  renderList('doneList', done);
+
+  document.getElementById('activeEmpty').style.display = active.length ? 'none' : 'block';
+  document.getElementById('doneDivider').style.display = done.length ? 'block' : 'none';
+  document.getElementById('doneLabelEl').style.display = done.length ? 'block' : 'none';
+
+  document.getElementById('statTotal').textContent  = tasks.length;
+  document.getElementById('statDone').textContent   = done.length;
+  document.getElementById('statActive').textContent = active.length;
+}
+
+function renderList(listId, items) {
+  const ul = document.getElementById(listId);
+  ul.innerHTML = '';
+  items.forEach(t => ul.appendChild(buildTaskEl(t)));
+}
+
+function buildTaskEl(t) {
+  const li = document.createElement('li');
+  li.className = 'task-item' + (t.is_done ? ' is-done' : '');
+  li.dataset.id = t.id;
+  li.innerHTML = `
+    <input type="checkbox" class="task-check" ${t.is_done ? 'checked' : ''}
+           onchange="toggleDone(${t.id}, this.checked)" />
+    <div class="task-body">
+      <div class="task-title" id="title-${t.id}">${escHtml(t.title)}</div>
+      <div class="task-meta">
+        <span class="meta-badge"><i class="bi bi-calendar-plus"></i> ${t.created_at}</span>
+        ${t.updated_at !== t.created_at
+          ? `<span class="meta-badge"><i class="bi bi-pencil"></i> ${t.updated_at}</span>`
+          : ''}
+      </div>
+    </div>
+    <div class="task-actions">
+      ${!t.is_done ? `<button class="btn-icon" title="Edit" onclick="startEdit(${t.id})"><i class="bi bi-pencil-square"></i></button>` : ''}
+      <button class="btn-icon delete" title="Hapus" onclick="deleteTask(${t.id})"><i class="bi bi-trash3"></i></button>
+    </div>
+  `;
+  return li;
+}
+
+async function addTask() {
+  const input = document.getElementById('newTaskInput');
+  const title = input.value.trim();
+  if (!title) { input.focus(); return; }
+  const res = await fetch('/tasks', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title })
+  });
+  if (res.ok) {
+    input.value = '';
+    await fetchTasks();
+    toast('✿ Task ditambahkan!');
+  }
+}
+
+async function toggleDone(id, isDone) {
+  await fetch(`/tasks/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ is_done: isDone })
+  });
+  await fetchTasks();
+  toast(isDone ? '✓ Selesai! Kerja bagus~' : '↩ Task diaktifkan kembali');
+}
+
+async function deleteTask(id) {
+  await fetch(`/tasks/${id}`, { method: 'DELETE' });
+  await fetchTasks();
+  toast('🗑 Task dihapus');
+}
+
+function startEdit(id) {
+  const el   = document.getElementById(`title-${id}`);
+  const orig = el.textContent;
+  el.innerHTML = `
+    <input class="edit-input" id="edit-input-${id}"
+           value="${escHtml(orig)}" maxlength="280"
+           onkeydown="handleEditKey(event, ${id})"
+           onblur="cancelEdit()" />
+  `;
+  const inp = document.getElementById(`edit-input-${id}`);
+  inp.focus(); inp.select();
+}
+
+async function handleEditKey(e, id) {
+  if (e.key === 'Enter') {
+    const val = e.target.value.trim();
+    if (!val) return;
+    await fetch(`/tasks/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: val })
+    });
+    await fetchTasks();
+    toast('✎ Task diperbarui');
+  }
+  if (e.key === 'Escape') fetchTasks();
+}
+
+function cancelEdit() { setTimeout(() => fetchTasks(), 150); }
+
+document.getElementById('newTaskInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addTask();
+});
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(msg) {
+  const c   = document.getElementById('toastContainer');
+  const div = document.createElement('div');
+  div.className   = 'toast-msg';
+  div.textContent = msg;
+  c.appendChild(div);
+  setTimeout(() => div.remove(), 2600);
+}
+
+fetchTasks();
+</script>
+</body>
+</html>

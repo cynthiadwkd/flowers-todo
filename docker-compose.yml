@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8088:5000"
+    volumes:
+      - ./app:/app/app
+      - ./instance:/app/instance
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URL=sqlite:////app/instance/todo.db
+    restart: unless-stopped
