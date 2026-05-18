@@ -10,6 +10,8 @@ Aplikasi to-do list bertema padang bunga di salah satu anime kesukaanku - Sousou
 - 🌸 Efek kelopak bunga melayang (kuning, pink, merah, putih, biru)
 - 💾 Data tersimpan di SQLite (persisten)
 
+![launch](image.png)
+
 ## Cara Jalankan
 
 ### Dengan Docker (recommended)
@@ -18,7 +20,7 @@ git clone <repo-url>
 cd flowers-todo
 docker-compose up --build
 ```
-Buka browser: **http://localhost:5000**
+Buka browser: **http://localhost:8088**
 
 ### Tanpa Docker (local dev)
 ```bash
