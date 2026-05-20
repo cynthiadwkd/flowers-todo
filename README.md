@@ -4,11 +4,11 @@ Aplikasi to-do list bertema padang bunga di salah satu anime kesukaanku - Sousou
 
 ## Fitur
 - ✅ Tambah, edit, hapus task
-- ✿ Task selesai dicoret dan turun ke bawah (animasi)
+- ✿ Task selesai dicoret dan turun ke bawah 
 - 📅 Tanggal created & updated per task
-- 🖼️ Background gambar lokal (bisa diganti sesuai selera)
-- 🌸 Efek kelopak bunga melayang (kuning, pink, merah, putih, biru)
-- 💾 Data tersimpan di SQLite (persisten)
+- 🖼️ Background gambar lokal 
+- 🌸 Efek kelopak bunga melayang 
+- 💾 Data tersimpan di SQLite
 
 ![launch](image.png)
 
